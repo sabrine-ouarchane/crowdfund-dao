@@ -96,3 +96,5 @@ textarea {
 .owners { margin: 4px 0 12px; padding-left: 18px; }
 .owners li { margin: 4px 0; }
 aside.card p { margin: 8px 0; }
+.cover { width: 100%; max-height: 220px; object-fit: cover; border-radius: 8px; margin-top: 12px; }
+a { color: #9d87ff; }

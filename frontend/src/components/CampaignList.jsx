@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { getContracts, shortAddress, fmt, readableError } from "../lib/web3";
+import { fetchMetadata, ipfsToHttp } from "../lib/ipfs";
 
 const STATUS = ["En cours", "Reussie", "Echouee", "Annulee"];
 const STATUS_CLASS = ["active", "success", "failed", "cancelled"];
@@ -26,6 +27,7 @@ export default function CampaignList({ wallet, reloadKey, runTx, busy, paused })
   const [amounts, setAmounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [meta, setMeta] = useState({});
 
   // Lecture de toutes les campagnes sur la blockchain
   useEffect(() => {
@@ -57,10 +59,9 @@ export default function CampaignList({ wallet, reloadKey, runTx, busy, paused })
           })
         );
 
-        // L'heure de la BLOCKCHAIN (pas celle du PC) : c'est elle que le contrat utilise
         const block = await wallet.provider.getBlock("latest");
         if (!cancelled) {
-          setCampaigns(list.reverse()); // les plus recentes en premier
+          setCampaigns(list.reverse());
           setNow(block.timestamp);
           setLoadError("");
         }
@@ -72,6 +73,16 @@ export default function CampaignList({ wallet, reloadKey, runTx, busy, paused })
     })();
     return () => { cancelled = true; };
   }, [wallet, reloadKey]);
+
+  // Lecture des metadonnees IPFS (titre, description, image) de chaque campagne
+  useEffect(() => {
+    campaigns.forEach((c) => {
+      if (c.ipfsHash.startsWith("demo:") || meta[c.ipfsHash]) return;
+      fetchMetadata(c.ipfsHash)
+        .then((m) => setMeta((prev) => ({ ...prev, [c.ipfsHash]: m })))
+        .catch(() => setMeta((prev) => ({ ...prev, [c.ipfsHash]: { name: "Metadonnees IPFS indisponibles" } })));
+    });
+  }, [campaigns]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cf = () => getContracts(wallet.signer).crowdfunding;
   const me = wallet.address.toLowerCase();
@@ -93,6 +104,7 @@ export default function CampaignList({ wallet, reloadKey, runTx, busy, paused })
   return (
     <div className="grid">
       {campaigns.map((c) => {
+        const m = meta[c.ipfsHash];
         const pct = c.goal > 0n ? Number((c.raised * 100n) / c.goal) : 0;
         const ended = now >= Number(c.deadline);
         const isActive = c.status === 0;
@@ -107,9 +119,18 @@ export default function CampaignList({ wallet, reloadKey, runTx, busy, paused })
         return (
           <div key={c.id} className="card campaign">
             <div className="campaign-head">
-              <h3>#{c.id} · {campaignTitle(c.ipfsHash)}</h3>
+              <h3>#{c.id} · {m?.name || campaignTitle(c.ipfsHash)}</h3>
               <span className={`status ${STATUS_CLASS[c.status]}`}>{STATUS[c.status]}</span>
             </div>
+
+            {m?.image && <img className="cover" src={ipfsToHttp(m.image)} alt="" />}
+            {m?.description && <p>{m.description}</p>}
+            {!c.ipfsHash.startsWith("demo:") && (
+              <p className="muted small">
+                CID IPFS :{" "}
+                <a href={ipfsToHttp(c.ipfsHash)} target="_blank" rel="noreferrer">{c.ipfsHash.slice(0, 14)}…</a>
+              </p>
+            )}
 
             <div className="progress"><div style={{ width: `${Math.min(pct, 100)}%` }} /></div>
             <p><strong>{fmt(c.raised)} ETH</strong> sur {fmt(c.goal)} ETH ({pct} %)</p>
@@ -144,7 +165,7 @@ export default function CampaignList({ wallet, reloadKey, runTx, busy, paused })
               )}
               {canRefund && (
                 <button className="btn" disabled={busy || paused}
-                  onClick={() => runTx(() => cf().refund(c.id), "Remboursement effectue, tes CFD ont ete brules")}>
+                                  onClick={() => runTx(() => cf().refund(c.id), "Remboursement effectue, tes CFD ont ete brules")}>
                   Me faire rembourser
                 </button>
               )}
