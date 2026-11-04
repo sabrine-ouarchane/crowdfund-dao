@@ -7,6 +7,7 @@ import Header from "./components/Header";
 import CreateCampaign from "./components/CreateCampaign";
 import CampaignList from "./components/CampaignList";
 import GovernancePanel from "./components/GovernancePanel";
+import TreasuryPanel from "./components/TreasuryPanel";
 import "./App.css";
 
 export default function App() {
@@ -133,6 +134,9 @@ export default function App() {
               <button className={tab === "governance" ? "tab active" : "tab"} onClick={() => setTab("governance")}>
                 Gouvernance
               </button>
+                            <button className={tab === "treasury" ? "tab active" : "tab"} onClick={() => setTab("treasury")}>
+                Coffre multisig
+              </button>
             </nav>
 
             {tab === "campaigns" && (
@@ -149,6 +153,9 @@ export default function App() {
 
             {tab === "governance" && (
               <GovernancePanel wallet={wallet} reloadKey={reloadKey} runTx={runTx} busy={busy} />
+            )}
+            {tab === "treasury" && (
+              <TreasuryPanel wallet={wallet} reloadKey={reloadKey} runTx={runTx} busy={busy} />
             )}
           </>
         )}

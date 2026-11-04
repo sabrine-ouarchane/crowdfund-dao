@@ -90,3 +90,9 @@ textarea {
   margin: 0; padding: 10px 12px; border-radius: 8px; font-size: 0.9rem;
   background: #2a2214; border: 1px solid #ffb84d; color: #ffd699;
 }
+.sigs { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+.sig { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); }
+.sig.on { background: var(--ok); border-color: var(--ok); }
+.owners { margin: 4px 0 12px; padding-left: 18px; }
+.owners li { margin: 4px 0; }
+aside.card p { margin: 8px 0; }
