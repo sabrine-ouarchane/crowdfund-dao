@@ -1,122 +1,119 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState, useEffect, useCallback } from "react";
+import {
+  connectWallet, getContracts, switchToExpectedNetwork,
+  EXPECTED_CHAIN_ID, ADDRESSES, readableError, shortAddress,
+} from "./lib/web3";
+import Header from "./components/Header";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [wallet, setWallet] = useState(null); // { provider, signer, address, chainId }
+  const [info, setInfo] = useState(null);     // soldes, roles, pause
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const wrongNetwork = wallet && wallet.chainId !== EXPECTED_CHAIN_ID;
+
+  // Connexion a MetaMask
+  const connect = useCallback(async () => {
+    try {
+      setError("");
+      setWallet(await connectWallet());
+    } catch (e) {
+      setError(readableError(e));
+    }
+  }, []);
+
+  // Au chargement : reconnexion silencieuse + ecoute des changements de compte/reseau
+  useEffect(() => {
+    if (!window.ethereum) return;
+
+    window.ethereum.request({ method: "eth_accounts" }).then((accounts) => {
+      if (accounts.length > 0) connect();
+    });
+
+    const onAccountsChanged = (accounts) => (accounts.length > 0 ? connect() : setWallet(null));
+    const onChainChanged = () => connect();
+    window.ethereum.on("accountsChanged", onAccountsChanged);
+    window.ethereum.on("chainChanged", onChainChanged);
+
+    return () => {
+      window.ethereum.removeListener("accountsChanged", onAccountsChanged);
+      window.ethereum.removeListener("chainChanged", onChainChanged);
+    };
+  }, [connect]);
+
+  // Lecture des informations du compte sur la blockchain
+  const refresh = useCallback(async () => {
+    if (!wallet || wrongNetwork) {
+      setInfo(null);
+      return;
+    }
+    try {
+      const { token, crowdfunding, treasury } = getContracts(wallet.provider);
+      const pauserRole = await crowdfunding.PAUSER_ROLE();
+      const [eth, cfd, isPauser, isGuardian, paused] = await Promise.all([
+        wallet.provider.getBalance(wallet.address),
+        token.balanceOf(wallet.address),
+        crowdfunding.hasRole(pauserRole, wallet.address),
+        treasury.isOwner(wallet.address),
+        crowdfunding.paused(),
+      ]);
+      setInfo({ eth, cfd, isPauser, isGuardian, paused });
+    } catch (e) {
+      setError(readableError(e));
+    }
+  }, [wallet, wrongNetwork]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  // Bouton d'urgence (Admin)
+  const togglePause = async () => {
+    try {
+      setBusy(true);
+      setError("");
+      const { crowdfunding } = getContracts(wallet.signer);
+      const tx = info.paused ? await crowdfunding.unpause() : await crowdfunding.pause();
+      await tx.wait();
+      await refresh();
+    } catch (e) {
+      setError(readableError(e));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      <Header
+        wallet={wallet}
+        info={info}
+        wrongNetwork={wrongNetwork}
+        busy={busy}
+        onConnect={connect}
+        onSwitchNetwork={() => switchToExpectedNetwork().catch((e) => setError(readableError(e)))}
+        onTogglePause={togglePause}
+      />
 
-      <div className="ticks"></div>
+      <main>
+        {error && <div className="error">{error}</div>}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        {!window.ethereum && (
+          <div className="card">Installe l'extension MetaMask pour utiliser cette dApp.</div>
+        )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+        {wallet && !wrongNetwork && (
+          <div className="card">
+            <h2>Connexion reussie</h2>
+            <p className="muted">
+              Contrat Crowdfunding : {shortAddress(ADDRESSES.Crowdfunding)} · Gouvernance : {shortAddress(ADDRESSES.Governance)}
+            </p>
+            <p>La liste des campagnes arrivera ici a l'etape suivante.</p>
+          </div>
+        )}
+      </main>
     </>
-  )
+  );
 }
-
-export default App
