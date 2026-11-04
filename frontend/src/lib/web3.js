@@ -68,8 +68,15 @@ export const fmt = (wei, decimals = 4) =>
   Number(ethers.formatEther(wei)).toLocaleString("fr-FR", { maximumFractionDigits: decimals });
 
 // Transforme une erreur technique en message lisible
+const CUSTOM_ERRORS = {
+  EnforcedPause: "La plateforme est en pause (circuit breaker actif).",
+  AccessControlUnauthorizedAccount: "Tu n'as pas le role necessaire pour cette action.",
+  ERC20InsufficientBalance: "Solde de CFD insuffisant (as-tu transfere tes jetons ?).",
+};
+
 export function readableError(e) {
   if (e?.code === "ACTION_REJECTED") return "Transaction refusee dans MetaMask.";
   if (e?.code === "BAD_DATA") return "Contrats introuvables : la blockchain a-t-elle ete redemarree ? Relance le deploiement.";
+  if (e?.revert?.name) return CUSTOM_ERRORS[e.revert.name] || `Erreur du contrat : ${e.revert.name}`;
   return e?.reason || e?.shortMessage || e?.message || "Erreur inconnue";
 }

@@ -1,20 +1,23 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   connectWallet, getContracts, switchToExpectedNetwork,
-  EXPECTED_CHAIN_ID, ADDRESSES, readableError, shortAddress,
+  EXPECTED_CHAIN_ID, readableError,
 } from "./lib/web3";
 import Header from "./components/Header";
+import CreateCampaign from "./components/CreateCampaign";
+import CampaignList from "./components/CampaignList";
 import "./App.css";
 
 export default function App() {
-  const [wallet, setWallet] = useState(null); // { provider, signer, address, chainId }
-  const [info, setInfo] = useState(null);     // soldes, roles, pause
+  const [wallet, setWallet] = useState(null);
+  const [info, setInfo] = useState(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const wrongNetwork = wallet && wallet.chainId !== EXPECTED_CHAIN_ID;
 
-  // Connexion a MetaMask
   const connect = useCallback(async () => {
     try {
       setError("");
@@ -24,26 +27,21 @@ export default function App() {
     }
   }, []);
 
-  // Au chargement : reconnexion silencieuse + ecoute des changements de compte/reseau
   useEffect(() => {
     if (!window.ethereum) return;
-
     window.ethereum.request({ method: "eth_accounts" }).then((accounts) => {
       if (accounts.length > 0) connect();
     });
-
     const onAccountsChanged = (accounts) => (accounts.length > 0 ? connect() : setWallet(null));
     const onChainChanged = () => connect();
     window.ethereum.on("accountsChanged", onAccountsChanged);
     window.ethereum.on("chainChanged", onChainChanged);
-
     return () => {
       window.ethereum.removeListener("accountsChanged", onAccountsChanged);
       window.ethereum.removeListener("chainChanged", onChainChanged);
     };
   }, [connect]);
 
-  // Lecture des informations du compte sur la blockchain
   const refresh = useCallback(async () => {
     if (!wallet || wrongNetwork) {
       setInfo(null);
@@ -69,21 +67,37 @@ export default function App() {
     refresh();
   }, [refresh]);
 
-  // Bouton d'urgence (Admin)
-  const togglePause = async () => {
+  // Fonction unique pour envoyer une transaction et suivre son etat
+  const runTx = async (sendTx, successMessage) => {
     try {
       setBusy(true);
       setError("");
-      const { crowdfunding } = getContracts(wallet.signer);
-      const tx = info.paused ? await crowdfunding.unpause() : await crowdfunding.pause();
+      setNotice("Confirme la transaction dans MetaMask…");
+      const tx = await sendTx();
+      setNotice("Transaction envoyee, attente de la confirmation dans un bloc…");
       await tx.wait();
+      setNotice(successMessage);
+      setReloadKey((k) => k + 1);
       await refresh();
+      return true;
     } catch (e) {
+      setNotice("");
       setError(readableError(e));
+      return false;
     } finally {
       setBusy(false);
     }
   };
+
+  const togglePause = () => {
+    const { crowdfunding } = getContracts(wallet.signer);
+    return runTx(
+      () => (info.paused ? crowdfunding.unpause() : crowdfunding.pause()),
+      info.paused ? "Plateforme reprise" : "Plateforme mise en pause"
+    );
+  };
+
+  const ready = wallet && !wrongNetwork && info;
 
   return (
     <>
@@ -99,18 +113,24 @@ export default function App() {
 
       <main>
         {error && <div className="error">{error}</div>}
+        {notice && <div className="notice">{notice}</div>}
 
         {!window.ethereum && (
           <div className="card">Installe l'extension MetaMask pour utiliser cette dApp.</div>
         )}
+        {window.ethereum && !wallet && (
+          <div className="card">Connecte MetaMask pour voir les campagnes.</div>
+        )}
 
-        {wallet && !wrongNetwork && (
-          <div className="card">
-            <h2>Connexion reussie</h2>
-            <p className="muted">
-              Contrat Crowdfunding : {shortAddress(ADDRESSES.Crowdfunding)} · Gouvernance : {shortAddress(ADDRESSES.Governance)}
-            </p>
-            <p>La liste des campagnes arrivera ici a l'etape suivante.</p>
+        {ready && (
+          <div className="layout">
+            <section>
+              <h2>Campagnes</h2>
+              <CampaignList wallet={wallet} reloadKey={reloadKey} runTx={runTx} busy={busy} paused={info.paused} />
+            </section>
+            <aside>
+              <CreateCampaign wallet={wallet} runTx={runTx} busy={busy} paused={info.paused} />
+            </aside>
           </div>
         )}
       </main>
