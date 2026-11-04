@@ -27,7 +27,7 @@ contract MultiSigTreasury is ReentrancyGuard {
     Transaction[] public transactions;
     mapping(uint256 => mapping(address => bool)) public isConfirmed;
 
-    event CoreSet(address core);
+    event CoreSet(address indexed core);
     event Deposited(uint256 indexed txId, address indexed to, uint256 value);
     event Confirmed(uint256 indexed txId, address indexed owner);
     event Revoked(uint256 indexed txId, address indexed owner);
@@ -63,12 +63,12 @@ contract MultiSigTreasury is ReentrancyGuard {
     }
 
     /// A appeler une seule fois, juste apres le deploiement de Crowdfunding
-    function setCore(address _core) external {
+    function setCore(address newCore) external {
         require(msg.sender == deployer, "MS: seul le deployeur");
         require(core == address(0), "MS: core deja defini");
-        require(_core != address(0), "MS: adresse nulle");
-        core = _core;
-        emit CoreSet(_core);
+        require(newCore != address(0), "MS: adresse nulle");
+        core = newCore;
+        emit CoreSet(newCore);
     }
         /// Appele par Crowdfunding : cree une transaction en attente vers le beneficiaire
     function deposit(address to) external payable returns (uint256 txId) {

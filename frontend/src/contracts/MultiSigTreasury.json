@@ -44,7 +44,7 @@
       "anonymous": false,
       "inputs": [
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "address",
           "name": "core",
           "type": "address"
@@ -285,7 +285,7 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "_core",
+          "name": "newCore",
           "type": "address"
         }
       ],

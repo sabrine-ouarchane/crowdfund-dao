@@ -135,15 +135,15 @@ contract Governance {
         // CHECKS
         require(state(id) == ProposalState.Executable, "GOV: non executable");
         Proposal storage p = proposals[id];
-        // EFFECTS
+        // EFFECTS (l'evenement fait partie des effets : emis AVANT l'appel externe)
         p.executed = true;
+        emit ProposalExecuted(id);
         // INTERACTIONS
         if (p.ptype == ProposalType.Release) {
             crowdfunding.approveRelease(p.campaignId, p.amount);
         } else {
             crowdfunding.freezeCampaign(p.campaignId);
         }
-        emit ProposalExecuted(id);
     }
 
     function proposalCount() external view returns (uint256) {
