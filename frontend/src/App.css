@@ -60,3 +60,33 @@ input, select {
 .form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .form-error { color: var(--danger); margin: 0; }
 .mono { font-family: monospace; font-size: 0.85rem; }
+.tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+.tab {
+  padding: 10px 16px; background: transparent; color: var(--muted); cursor: pointer;
+  border: none; border-bottom: 2px solid transparent;
+}
+.tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+.small { font-size: 0.85rem; }
+textarea {
+  padding: 8px 10px; border-radius: 8px; resize: vertical;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text);
+}
+
+.proposal p { margin: 8px 0; }
+.votes { margin: 12px 0; }
+.vote-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--border); }
+.vote-bar .for { background: var(--ok); }
+.vote-bar .against { background: var(--danger); }
+.ok { color: var(--ok); }
+.ko { color: var(--danger); }
+.ok-btn { border-color: var(--ok); color: var(--ok); }
+.ko-btn { border-color: var(--danger); color: var(--danger); }
+
+.status.queued { color: #c39bff; }
+.status.done { color: var(--muted); }
+
+.snapshot-note {
+  margin: 0; padding: 10px 12px; border-radius: 8px; font-size: 0.9rem;
+  background: #2a2214; border: 1px solid #ffb84d; color: #ffd699;
+}

@@ -6,6 +6,7 @@ import {
 import Header from "./components/Header";
 import CreateCampaign from "./components/CreateCampaign";
 import CampaignList from "./components/CampaignList";
+import GovernancePanel from "./components/GovernancePanel";
 import "./App.css";
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [tab, setTab] = useState("campaigns");
 
   const wrongNetwork = wallet && wallet.chainId !== EXPECTED_CHAIN_ID;
 
@@ -123,15 +125,32 @@ export default function App() {
         )}
 
         {ready && (
-          <div className="layout">
-            <section>
-              <h2>Campagnes</h2>
-              <CampaignList wallet={wallet} reloadKey={reloadKey} runTx={runTx} busy={busy} paused={info.paused} />
-            </section>
-            <aside>
-              <CreateCampaign wallet={wallet} runTx={runTx} busy={busy} paused={info.paused} />
-            </aside>
-          </div>
+          <>
+            <nav className="tabs">
+              <button className={tab === "campaigns" ? "tab active" : "tab"} onClick={() => setTab("campaigns")}>
+                Campagnes
+              </button>
+              <button className={tab === "governance" ? "tab active" : "tab"} onClick={() => setTab("governance")}>
+                Gouvernance
+              </button>
+            </nav>
+
+            {tab === "campaigns" && (
+              <div className="layout">
+                <section>
+                  <h2>Campagnes</h2>
+                  <CampaignList wallet={wallet} reloadKey={reloadKey} runTx={runTx} busy={busy} paused={info.paused} />
+                </section>
+                <aside>
+                  <CreateCampaign wallet={wallet} runTx={runTx} busy={busy} paused={info.paused} />
+                </aside>
+              </div>
+            )}
+
+            {tab === "governance" && (
+              <GovernancePanel wallet={wallet} reloadKey={reloadKey} runTx={runTx} busy={busy} />
+            )}
+          </>
         )}
       </main>
     </>
