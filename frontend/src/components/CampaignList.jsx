@@ -148,7 +148,7 @@ export default function CampaignList({ wallet, reloadKey, runTx, busy, paused })
               {canContribute && (
                 <>
                   <input
-                    type="number" min="0" step="0.01" placeholder="ETH"
+                    type="number" min="0" step="any" placeholder="ETH"
                     value={amounts[c.id] || ""}
                     onChange={(e) => setAmounts((a) => ({ ...a, [c.id]: e.target.value }))}
                   />

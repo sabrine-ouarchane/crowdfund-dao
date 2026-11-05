@@ -151,7 +151,7 @@ export default function GovernancePanel({ wallet, reloadKey, runTx, busy }) {
 
       {ptype === 0 && (
         <label>Montant a debloquer (ETH)
-          <input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <input type="number" min="0" step="any" value={amount} onChange={(e) => setAmount(e.target.value)} />
         </label>
       )}
 

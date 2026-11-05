@@ -94,7 +94,7 @@ export default function CreateCampaign({ wallet, runTx, busy, paused }) {
 
       <div className="row">
         <label>Objectif (ETH)
-          <input type="number" min="0" step="0.01" value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="10" />
+          <input type="number" min="0" step="any" value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="10" />
         </label>
         <label>Duree
           <select value={duration} onChange={(e) => setDuration(Number(e.target.value))}>
