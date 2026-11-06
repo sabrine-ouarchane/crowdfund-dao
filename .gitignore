@@ -1,17 +1,27 @@
-node_modules
+# Secrets : ne JAMAIS versionner
 .env
+.env.*
+!.env.example
 
-# Hardhat files
-/cache
-/artifacts
+# Dépendances
+node_modules/
 
-# TypeChain files
-/typechain
-/typechain-types
+# Hardhat
+cache/
+artifacts/
+typechain-types/
+coverage/
+coverage.json
 
-# solidity-coverage files
-/coverage
-/coverage.json
+# Frontend
+frontend/dist/
 
-# Hardhat Ignition default folder for deployments against a local node
-ignition/deployments/chain-31337
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Systèmes / éditeurs
+.DS_Store
+Thumbs.db
+.vscode/
