@@ -1,0 +1,18 @@
+{
+  "network": "localhost",
+  "chainId": 31337,
+  "deployedAt": "2026-11-05T01:01:20.553Z",
+  "votingPeriod": 600,
+  "executionDelay": 120,
+  "guardians": [
+    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+    "0x90F79bf6EB2c4f870365E785982E1f101E93b906"
+  ],
+  "contracts": {
+    "CFDToken": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
+    "MultiSigTreasury": "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c",
+    "Crowdfunding": "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d",
+    "Governance": "0x59b670e9fA9D0A427751Af201D676719a970857b"
+  }
+}

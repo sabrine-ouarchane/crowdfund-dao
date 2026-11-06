@@ -1,0 +1,63 @@
+{
+  "generated_at": "2026-11-05T01:03:28.156195+00:00",
+  "network": "localhost",
+  "chain_id": 31337,
+  "rules": {
+    "MIN_GROUP": 3,
+    "BURST_WINDOW_s": 600,
+    "BURST_MIN": 5
+  },
+  "campaigns": [
+    {
+      "campaign": 0,
+      "contributions": 5,
+      "contributors": 3,
+      "total_eth": "5.5",
+      "score": 0,
+      "verdict": "normale",
+      "alerts": []
+    },
+    {
+      "campaign": 1,
+      "contributions": 6,
+      "contributors": 6,
+      "total_eth": "3",
+      "score": 3,
+      "verdict": "SUSPECTE - proposer un gel (Freeze)",
+      "alerts": [
+        {
+          "campaign": 1,
+          "rule": "MONTANTS_REPETITIFS",
+          "detail": "6 adresses differentes ont envoye exactement 0.5 ETH",
+          "addresses": [
+            "0x1b05CDA89996642D4DC9119500717D3c90D482fa",
+            "0x2F64fed266bADb6E3d3408e67abc46569848f3bd",
+            "0x5843b9e79767281d2af04d20d19142B22CD4dA00",
+            "0x866f7d273739B4Ba029FB79b8544ae9C71247817",
+            "0xF3fce27F3c5dA8855EC902C60354692B9C44C368",
+            "0xc74163Bd37eD2DA1a1aE6d0eeE037A49312A4b09"
+          ]
+        },
+        {
+          "campaign": 1,
+          "rule": "PIC_ACTIVITE",
+          "detail": "6 contributions en moins de 10 minutes"
+        },
+        {
+          "campaign": 1,
+          "rule": "ADRESSES_LIEES",
+          "detail": "6 contributeurs ont tous ete finances par 0x2361...1E8f",
+          "funder": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+          "addresses": [
+            "0x1b05CDA89996642D4DC9119500717D3c90D482fa",
+            "0x2F64fed266bADb6E3d3408e67abc46569848f3bd",
+            "0x5843b9e79767281d2af04d20d19142B22CD4dA00",
+            "0x866f7d273739B4Ba029FB79b8544ae9C71247817",
+            "0xF3fce27F3c5dA8855EC902C60354692B9C44C368",
+            "0xc74163Bd37eD2DA1a1aE6d0eeE037A49312A4b09"
+          ]
+        }
+      ]
+    }
+  ]
+}
